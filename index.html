@@ -830,8 +830,35 @@
     }
   }
 
+  // ========== BETA AUTO-CLICK ==========
+  let shiftHeld = false;
+  let hoveringBtn = false;
+  let autoClickInterval = null;
+
+  function updateAutoClick() {
+    if (shiftHeld && hoveringBtn && !autoClickInterval) {
+      autoClickInterval = setInterval(() => {
+        doClick({ clientX: 0, clientY: 0 });
+      }, 200);
+    } else if ((!shiftHeld || !hoveringBtn) && autoClickInterval) {
+      clearInterval(autoClickInterval);
+      autoClickInterval = null;
+    }
+  }
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Shift' && !shiftHeld) { shiftHeld = true; updateAutoClick(); }
+  });
+  document.addEventListener('keyup', (e) => {
+    if (e.key === 'Shift') { shiftHeld = false; updateAutoClick(); }
+  });
+
+  const clickBtn = $('click-btn');
+  clickBtn.addEventListener('mouseenter', () => { hoveringBtn = true; updateAutoClick(); });
+  clickBtn.addEventListener('mouseleave', () => { hoveringBtn = false; updateAutoClick(); });
+
   // ========== INIT ==========
-  $('click-btn').addEventListener('click', doClick);
+  clickBtn.addEventListener('click', doClick);
   $('new-run-btn').addEventListener('click', () => initRun());
 
   initRun();
