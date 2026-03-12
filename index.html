@@ -514,13 +514,11 @@
 (function() {
   // ========== SKILL DEFINITIONS ==========
   const BASE_SKILLS = [
-    { id: 'recuperation', name: 'Recuperation', desc: 'Regagne 0.1 endurance par seconde', effect: { regenPerSec: 0.1 } },
     { id: 'robustesse', name: 'Robustesse', desc: 'Endurance max +20', effect: { maxEndurance: 20 } },
     { id: 'efficacite', name: 'Efficacite', desc: 'Cout par clic -0.5 (min 0.1)', effect: { costReduction: 0.5 } },
     { id: 'frappe_lourde', name: 'Frappe lourde', desc: 'Points par clic +50%', effect: { pointsMultAdd: 0.5 } },
     { id: 'second_souffle', name: 'Second souffle', desc: 'Regagne 15 endurance a chaque montee de niveau', effect: { levelHeal: 15 } },
     { id: 'frenesie', name: 'Frenesie', desc: 'Points par clic +100% mais cout par clic +0.5', effect: { pointsMultAdd: 1.0, costIncrease: 0.5 } },
-    { id: 'meditation', name: 'Meditation', desc: 'Regen endurance +0.2/s', effect: { regenPerSec: 0.2 } },
     { id: 'endurance_fer', name: 'Endurance de fer', desc: 'Endurance max +50', effect: { maxEndurance: 50 } },
     { id: 'precision', name: 'Precision', desc: 'Points par clic +25% et cout par clic -0.25', effect: { pointsMultAdd: 0.25, costReduction: 0.25 } },
   ];
@@ -570,7 +568,6 @@
       clickCost: 1,
       basePointsPerClick: 1,
       pointsMultiplier: 1.0 * prestige.pointsMult,
-      regenPerSec: 0,
       levelHeal: 0,
       healPerClick: 0,
       costReduction: 0,
@@ -585,14 +582,13 @@
   }
 
   function recalcStats() {
-    let costRed = 0, costInc = 0, regen = 0, maxEnd = 100 + prestige.enduranceBonus;
+    let costRed = 0, costInc = 0, maxEnd = 100 + prestige.enduranceBonus;
     let ptsMult = 1.0 * prestige.pointsMult, lvlHeal = 0, healClick = 0;
 
     for (const sk of state.skills) {
       const e = sk.effect;
       if (e.costReduction) costRed += e.costReduction;
       if (e.costIncrease) costInc += e.costIncrease;
-      if (e.regenPerSec) regen += e.regenPerSec;
       if (e.maxEndurance) maxEnd += e.maxEndurance;
       if (e.pointsMultAdd) ptsMult += e.pointsMultAdd;
       if (e.levelHeal) lvlHeal += e.levelHeal;
@@ -601,7 +597,6 @@
 
     state.clickCost = Math.max(0.1, state.baseClickCost - costRed + costInc);
     state.pointsMultiplier = ptsMult;
-    state.regenPerSec = regen;
     state.maxEndurance = maxEnd;
     state.levelHeal = lvlHeal;
     state.healPerClick = healClick;
@@ -835,27 +830,11 @@
     }
   }
 
-  // ========== REGEN TICK ==========
-  let lastTime = performance.now();
-
-  function tick(now) {
-    const dt = (now - lastTime) / 1000;
-    lastTime = now;
-
-    if (!state.dead && state.regenPerSec > 0 && state.endurance > 0) {
-      state.endurance = Math.min(state.maxEndurance, state.endurance + state.regenPerSec * dt);
-      updateUI();
-    }
-
-    requestAnimationFrame(tick);
-  }
-
   // ========== INIT ==========
   $('click-btn').addEventListener('click', doClick);
   $('new-run-btn').addEventListener('click', () => initRun());
 
   initRun();
-  requestAnimationFrame(tick);
 })();
 </script>
 </body>
